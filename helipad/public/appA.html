@@ -1,0 +1,217 @@
+<script id='sap-ui-bootstrap' type='text/javascript'
+    src='https://sapui5.hana.ondemand.com/resources/sap-ui-core.js' data-sap-ui-libs="sap.m, sap.viz"
+    data-sap-ui-theme="sap_fiori_3_dark">
+
+
+    </script>
+<script id="myXml" type="text/xmldata">
+   <mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="myController" displayBlock="true">
+      <App>
+         <Page id="page" title="UI5 Table Playground (latest)">
+         		<Table id="table" items="{/items}">
+            	<columns>
+              	<Column>
+                	<header>
+                  	<Label text="Column 1"/>
+                  </header>
+                </Column>
+              	<Column>
+                	<header>
+                  	<Label text="Column 2"/>
+                  </header>
+                </Column>
+              	<Column>
+                	<header>
+                  	<Label text="Activity Type"/>
+                  </header>
+                </Column>
+              	<Column>
+                	<header>
+                  	<Label text="Resource Type"/>
+                  </header>
+                </Column>
+              </columns>
+              <items>
+              	<ColumnListItem>
+                	<cells>
+                  	<Input value="{value1}" editable="{editable}"/>
+                  	<Input value="{value2}" editable="{editable}"/>
+                    <Select items="{activityTypes}" selectedKey="{activityType}"  enabled="{editable}" change="onActivityTypeChange">
+                    	<items>
+                      	<core:Item key="{key}" text="{value}"/>
+                      </items>
+                    </Select>
+                    <Select items="{resourceTypes}" selectedKey="{resourceType}">
+                    	<items>
+                      	<core:Item key="{key}" text="{value}"/>
+                      </items>
+                    </Select>
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+            <footer>
+            	<Bar>
+              	<contentRight>
+                	<Button text="Add new Item" press="onNewItemPress"/>
+                </contentRight>
+              </Bar>
+            </footer>
+         </Page>
+      </App>
+   </mvc:View>
+</script>
+
+<script>
+    sap.ui.controller("myController", {
+        onInit: function () {
+
+            this.oPage = this.byId("page");
+            this.getView().addStyleClass("sapUiSizeCompact");
+
+            // this json model must be filled with the data from backend
+            // make odata calls: /Activities, ResourceTypes, ActivityTypes
+            // use the method "getResourceTypesOfActivityTypes" to fill the resourceTypes array correctly
+            // use the same principle to display ResourceNames
+
+            this.oModel = new sap.ui.model.json.JSONModel({
+                items: [
+                    {
+                        "value1": "Item 1",
+                        "value2": "15",
+                        "activityTypes": [
+                            {
+                                "key": "AT1",
+                                "value": "Activity Type 1"
+                            }
+                        ],
+                        "activityType": "AT1",
+                        "resourceTypes": this.getResourceTypesOfActivityType("AT1"),
+                        "resourceType": "RT3",
+                        "editable": false
+                    },
+                    {
+                        "value1": "Item 2",
+                        "value2": "16",
+                        "activityTypes": [
+                            {
+                                "key": "AT2",
+                                "value": "Activity Type 2"
+                            }
+                        ],
+                        "activityType": "AT2",
+                        "resourceTypes": this.getResourceTypesOfActivityType("AT2"),
+                        "resourceType": "RT1",
+                        "editable": false
+                    }
+                ],
+                activityTypes: [
+                    {
+                        "key": "AT1",
+                        "value": "Activity Type 1"
+                    },
+                    {
+                        "key": "AT2",
+                        "value": "Activity Type 2"
+                    },
+                    {
+                        "key": "AT3",
+                        "value": "Activity Type 3"
+                    }
+                ],
+                resourceTypes: [
+                    {
+                        "key": "RT1",
+                        "value": "Resource Type 1"
+                    },
+                    {
+                        "key": "RT2",
+                        "value": "Resource Type 2"
+                    },
+                    {
+                        "key": "RT3",
+                        "value": "Resource Type 3"
+                    }
+                ]
+            })
+
+            this.getView().setModel(this.oModel);
+        },
+        onNewItemPress: function () {
+
+            var activityTypes = this.oModel.getProperty("/activityTypes");
+            var resourceTypes = this.oModel.getProperty("/resourceTypes");
+
+            var newItem = {
+                "value1": "",
+                "value2": "",
+                "editable": true,
+                "activityTypes": activityTypes,
+                "resourceTypes": resourceTypes,
+                "activityType": "",
+                "resourceType": ""
+            }
+            var items = this.oModel.getProperty("/items");
+            items.push(newItem);
+            this.oModel.setProperty("/items", items);
+        },
+        onActivityTypeChange: function (oEvent) {
+            var oSource = oEvent.getSource();
+            var sPath = oSource.getBindingContext().sPath;
+            var item = this.oModel.getProperty(sPath);
+            item.resourceTypes = this.getResourceTypesOfActivityType(item.activityType);
+        },
+        getResourceTypesOfActivityType: function (activityType) {
+            // this logic should be in the backend
+            // make resourceType Select busy
+            // send odata call with filter on resourceTypes and wait for it with jQuery.Deferred
+            // wenn the call returned, return the resourceTypes
+            // setBusy = false
+
+            switch (activityType) {
+                case "AT1":
+                    return [
+                        {
+                            "key": "RT1",
+                            "value": "Resource Type 1"
+                        },
+                        {
+                            "key": "RT3",
+                            "value": "Resource Type 3"
+                        }
+                    ]
+                case "AT2":
+                    return [
+                        {
+                            "key": "RT1",
+                            "value": "Resource Type 1"
+                        },
+                        {
+                            "key": "RT2",
+                            "value": "Resource Type 2"
+                        }
+                    ]
+                case "AT3":
+                    return [
+                        {
+                            "key": "RT2",
+                            "value": "Resource Type 2"
+                        },
+                        {
+                            "key": "RT3",
+                            "value": "Resource Type 3"
+                        }
+                    ]
+            }
+        }
+    });
+
+    sap.ui.view({
+        viewContent: jQuery('#myXml').html(),
+        type: sap.ui.core.mvc.ViewType.XML
+    }).placeAt("content")
+</script>
+
+<body class='sapUiBody'>
+    <div id='content'></div>
+</body>
